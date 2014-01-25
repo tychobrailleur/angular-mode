@@ -1,4 +1,14 @@
-Minor mode for AngularJS.
+Minor mode for AngularJS.  This mode depends on helm.
+
+# Installation
+
+- Clone repository in your favourite location, e.g `.emacs.d`
+- Add the following to your Emacs init file:
+
+```
+(add-to-list 'load-path "~/.emacs.d/angular-mode")
+(require 'angular-mode)
+```
 
 # Bindings
 

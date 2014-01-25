@@ -13,6 +13,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; (setq debug-on-error t)
+
 (defvar angular-version "0.1.0")
 
 (defgroup angular nil
@@ -55,14 +57,23 @@
   :type 'boolean
   :group 'angular)
 
+(defun angular/angular-project-p (current-file)
+  "Checking this project is an AngularJS project by 
+ensuring app/directives directory exists."
+  (let ((root (angular/find-root current-file)))
+    (and (not (null root))
+         (file-exists-p (concat (file-name-as-directory root)
+                                (file-name-as-directory angular/scripts-dir)
+                                "directives")))))
+
 (defun angular/find-root (file)
   (when file
     (let ((current-dir (file-name-directory file))
           (found nil))
-      (while (not found)
+      (while (and (not found) (not (string= current-dir "/")))
         (if (file-exists-p (concat current-dir angular/source-dir))
             (setq found t)
-          (setq current-dir (concat current-dir "../"))))
+          (setq current-dir (expand-file-name (concat current-dir "../")))))
       (if found
           current-dir))))
 
@@ -107,7 +118,7 @@
         (setq suffix angular/controller-spec-suffix))
     (angular/find-file
      (concat root (file-name-as-directory angular/spec-dir)
-           (replace-regexp-in-string "\\.js$" (concat suffix ".js") relative-path)))))
+             (replace-regexp-in-string "\\.js$" (concat suffix ".js") relative-path)))))
 
 (defun angular/toggle-test ()
   "Switch between file and its associated spec."
@@ -126,8 +137,8 @@
          (current-file (buffer-file-name current-buf))
          (root (angular/find-root current-file))
          (resource-root (concat (file-name-as-directory root)
-                                   (file-name-as-directory angular/scripts-dir)
-                                   resource-type)))
+                                (file-name-as-directory angular/scripts-dir)
+                                resource-type)))
     (directory-files resource-root t "\\.js$")))
 
 (defun angular/angular-controllers-list ()
@@ -209,5 +220,10 @@
   :group 'angular
   :lighter " Angular"
   :keymap angular-mode-keymap)
+
+(add-hook 'find-file-hooks
+          (lambda()
+            (if (angular/angular-project-p (buffer-file-name))
+                (angular-mode t))))
 
 (provide 'angular-mode)
