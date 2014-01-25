@@ -13,7 +13,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; (setq debug-on-error t)
+(setq debug-on-error t)
+
+(require 'cl)
 
 (defvar angular-version "0.1.0")
 
@@ -57,14 +59,40 @@
   :type 'boolean
   :group 'angular)
 
+(defstruct resource
+  "A type of resource in an angular project"
+  name
+  description
+  extension
+  location)
+
+(defun angular/angular-script-dir (root resource)
+  (concat (file-name-as-directory root)
+          (file-name-as-directory angular/scripts-dir)
+          resource))
+
+(defvar angular/project-root nil)
+
+(defvar resource-list
+  '(
+    ( "controllers" . (make-resource
+                       :name "controllers"
+                       :description "Controllers"
+                       :extension ".js"
+                       :location (angular/angular-script-dir "controllers")))
+    ( "directives" . (make-resource
+                      :name "directives"
+                      :description "directives"
+                      :extension ".js"
+                      :location (angular/angular-script-dir "directives")))
+    ))
+
 (defun angular/angular-project-p (current-file)
-  "Checking this project is an AngularJS project by 
+  "Checking this project is an AngularJS project by
 ensuring app/directives directory exists."
   (let ((root (angular/find-root current-file)))
     (and (not (null root))
-         (file-exists-p (concat (file-name-as-directory root)
-                                (file-name-as-directory angular/scripts-dir)
-                                "directives")))))
+         (file-exists-p (angular/angular-script-dir root "directives")))))
 
 (defun angular/find-root (file)
   (when file
@@ -136,10 +164,8 @@ ensuring app/directives directory exists."
   (let* ((current-buf (current-buffer))
          (current-file (buffer-file-name current-buf))
          (root (angular/find-root current-file))
-         (resource-root (concat (file-name-as-directory root)
-                                (file-name-as-directory angular/scripts-dir)
-                                resource-type)))
-    (directory-files resource-root t "\\.js$")))
+         (resource-root (angular/angular-script-dir resource-type)))
+    (directory-files resource-root t "\\.\\(js|html|css\\)$")))
 
 (defun angular/angular-controllers-list ()
   (angular/angular-list-of "controllers"))
@@ -149,6 +175,9 @@ ensuring app/directives directory exists."
 
 (defun angular/angular-services-list ()
   (angular/angular-list-of "services"))
+
+(defun angular/angular-views-list ()
+  (angular/angular-list-of "views"))
 
 (defvar helm-angular-controllers-list-cache nil)
 (defvar helm-angular-controllers-list
@@ -174,6 +203,14 @@ ensuring app/directives directory exists."
     (candidates . helm-angular-services-list-cache)
     (type . file)))
 
+(defvar helm-angular-views-list-cache nil)
+(defvar helm-angular-views-list
+  `((name . "Views")
+    (init . (lambda ()
+              (setq helm-angular-views-list-cache (angular/angular-views-list))))
+    (candidates . helm-angular-views-list-cache)
+    (type . file)))
+
 (defun angular/helm-controllers ()
   (interactive)
   (require 'helm-files)
@@ -192,12 +229,19 @@ ensuring app/directives directory exists."
   (helm-other-buffer '(helm-angular-services-list)
                      "*helm angular*"))
 
+(defun angular/helm-views ()
+  (interactive)
+  (require 'helm-files)
+  (helm-other-buffer '(helm-angular-views-list)
+                     "*helm angular*"))
+
 (defun angular/helm-all ()
   (interactive)
   (require 'helm-files)
   (helm-other-buffer '(helm-angular-controllers-list
                        helm-angular-directives-list
-                       helm-angular-services-list)
+                       helm-angular-services-list
+                       helm-angular-views-list)
                      "*helm angular*"))
 
 (defvar angular-mode-keymap
@@ -211,6 +255,8 @@ ensuring app/directives directory exists."
     (define-key keymap
       (kbd "C-c s") 'angular/helm-services)
     (define-key keymap
+      (kbd "C-c v") 'angular/helm-views)
+    (define-key keymap
       (kbd "C-c a") 'angular/helm-all)
     keymap)
   "Key map for angular-mode.")
@@ -219,7 +265,8 @@ ensuring app/directives directory exists."
   "Angular JS minor mode."
   :group 'angular
   :lighter " Angular"
-  :keymap angular-mode-keymap)
+  :keymap angular-mode-keymap
+  (setq angular/project-root (angular/find-root (buffer-file-name))))
 
 (add-hook 'find-file-hooks
           (lambda()
