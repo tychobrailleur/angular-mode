@@ -25,8 +25,18 @@
   :type 'string
   :group 'angular)
 
+(defcustom angular/scripts-dir (concat angular/source-dir "/scripts")
+  "Location of scripts in the angular project."
+  :type 'string
+  :group 'angular)
+
 (defcustom angular/test-dir "test"
   "Location of tests in the angular project."
+  :type 'string
+  :group 'angular)
+
+(defcustom angular/spec-dir (concat angular/test-dir "/spec")
+  "Location of specs in the angular project."
   :type 'string
   :group 'angular)
 
@@ -52,12 +62,21 @@
           current-dir))))
 
 (defun angular/test-file-p (root file)
-  (string-match "^test/.*Spec\\.js$" (file-relative-name file root)))
+  (let ((relative-path (file-relative-name file root)))
+    (string-match (concat "^" angular/test-dir "/.*" angular/spec-suffix "\\.js$") relative-path)))
 
 (defun angular/find-root-from-current-buffer ()
   "Find the root of the project from the current buffer"
   (interactive)
   (message (angular/find-root (buffer-file-name (current-buffer)))))
+
+(defun angular/open-associated-script (file)
+  (find-file-other-window
+   (concat root (file-name-as-directory angular/scripts-dir) (replace-regexp-in-string "\\(Ctrl\\)?Spec" "" file))))
+
+(defun angular/open-associated-test (file)
+  (find-file-other-window
+   (concat root (file-name-as-directory angular/spec-dir) (replace-regexp-in-string "\\.js$" "Spec.js" file))))
 
 (defun angular/toggle-test ()
   "Switch between file and its associated spec."
@@ -66,16 +85,10 @@
          (current-file (buffer-file-name current-buf))
          (root (angular/find-root current-file)))
     (if (angular/test-file-p root current-file)
-        (let ((path-to-test (file-relative-name current-file (concat root "test/spec"))))
-          ;; TODO throw an error if spec doesn't exist.
-          (find-file-other-window
-           (concat root "/app/scripts/" (replace-regexp-in-string "\\(Ctrl\\)?Spec" "" path-to-test))))
-      (let ((path-to-test (file-relative-name current-file (concat root "app/scripts"))))
-
-        ;; If controller, replace with CtrlSpec.js
-        (find-file-other-window
-         (concat root "/test/spec/" (replace-regexp-in-string "\\.js$" "Spec.js" path-to-test))))
-      )))
+        (let ((path-to-test (file-relative-name current-file (concat root angular/spec-dir))))
+          (angular/open-associated-script path-to-test))
+      (let ((path-to-test (file-relative-name current-file (concat root angular/scripts-dir))))
+        (angular/open-associated-test path-to-test)))))
 
 (defvar angular-mode-keymap
   (let ((keymap (make-sparse-keymap)))
@@ -85,9 +98,9 @@
   "Key map for angular-mode.")
 
 (define-minor-mode angular-mode
-  "Angular"
-  nil
-  "Angular"
-  angular-mode-keymap)
+  "Angular JS minor mode."
+  :group 'angular
+  :lighter " Angular"
+  :keymap angular-mode-keymap)
 
 (provide 'angular-mode)
