@@ -181,6 +181,14 @@
   (helm-other-buffer '(helm-angular-services-list)
                      "*helm angular*"))
 
+(defun angular/helm-all ()
+  (interactive)
+  (require 'helm-files)
+  (helm-other-buffer '(helm-angular-controllers-list
+                       helm-angular-directives-list
+                       helm-angular-services-list)
+                     "*helm angular*"))
+
 (defvar angular-mode-keymap
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap
@@ -191,6 +199,8 @@
       (kbd "C-c d") 'angular/helm-directives)
     (define-key keymap
       (kbd "C-c s") 'angular/helm-services)
+    (define-key keymap
+      (kbd "C-c a") 'angular/helm-all)
     keymap)
   "Key map for angular-mode.")
 

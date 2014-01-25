@@ -7,6 +7,7 @@ test, and vice-versa.
 - `C-c c`: List controllers using Helm.
 - `C-c d`: List directives using Helm.
 - `C-c s`: List services using Helm.
+- `C-c a`: List all.
 
 # License
 
