@@ -121,14 +121,23 @@
       (let ((path-to-test (file-relative-name current-file (concat root angular/scripts-dir))))
         (angular/open-associated-test root current-file)))))
 
-(defun angular/angular-controllers-list ()
+(defun angular/angular-list-of (resource-type)
   (let* ((current-buf (current-buffer))
          (current-file (buffer-file-name current-buf))
          (root (angular/find-root current-file))
-         (controllers-root (concat (file-name-as-directory root)
+         (resource-root (concat (file-name-as-directory root)
                                    (file-name-as-directory angular/scripts-dir)
-                                   "controllers")))
-    (directory-files controllers-root t "\\.js$")))
+                                   resource-type)))
+    (directory-files resource-root t "\\.js$")))
+
+(defun angular/angular-controllers-list ()
+  (angular/angular-list-of "controllers"))
+
+(defun angular/angular-directives-list ()
+  (angular/angular-list-of "directives"))
+
+(defun angular/angular-services-list ()
+  (angular/angular-list-of "services"))
 
 (defvar helm-angular-controllers-list-cache nil)
 (defvar helm-angular-controllers-list
@@ -138,10 +147,38 @@
     (candidates . helm-angular-controllers-list-cache)
     (type . file)))
 
+(defvar helm-angular-directives-list-cache nil)
+(defvar helm-angular-directives-list
+  `((name . "Directives")
+    (init . (lambda ()
+              (setq helm-angular-directives-list-cache (angular/angular-directives-list))))
+    (candidates . helm-angular-directives-list-cache)
+    (type . file)))
+
+(defvar helm-angular-services-list-cache nil)
+(defvar helm-angular-services-list
+  `((name . "Services")
+    (init . (lambda ()
+              (setq helm-angular-services-list-cache (angular/angular-services-list))))
+    (candidates . helm-angular-services-list-cache)
+    (type . file)))
+
 (defun angular/helm-controllers ()
   (interactive)
   (require 'helm-files)
   (helm-other-buffer '(helm-angular-controllers-list)
+                     "*helm angular*"))
+
+(defun angular/helm-directives ()
+  (interactive)
+  (require 'helm-files)
+  (helm-other-buffer '(helm-angular-directives-list)
+                     "*helm angular*"))
+
+(defun angular/helm-services ()
+  (interactive)
+  (require 'helm-files)
+  (helm-other-buffer '(helm-angular-services-list)
                      "*helm angular*"))
 
 (defvar angular-mode-keymap
@@ -150,6 +187,10 @@
       (kbd "C-c t") 'angular/toggle-test)
     (define-key keymap
       (kbd "C-c c") 'angular/helm-controllers)
+    (define-key keymap
+      (kbd "C-c d") 'angular/helm-directives)
+    (define-key keymap
+      (kbd "C-c s") 'angular/helm-services)
     keymap)
   "Key map for angular-mode.")
 
