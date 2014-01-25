@@ -3,8 +3,10 @@ Minor mode for AngularJS.
 # Bindings
 
 - `C-c t`: Toggle test.  From a JavaScript file, switches to the unit
-  test, and vice-versa.
+test, and vice-versa.
 - `C-c c`: List controllers using Helm.
+- `C-c d`: List directives using Helm.
+- `C-c s`: List services using Helm.
 
 # License
 
