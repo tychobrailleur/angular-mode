@@ -50,6 +50,11 @@
   :type 'string
   :group 'angular)
 
+(defcustom angular/toggle-test-in-other-window t
+  "Open test in other window."
+  :type 'boolean
+  :group 'angular)
+
 (defun angular/find-root (file)
   (when file
     (let ((current-dir (file-name-directory file))
@@ -65,18 +70,44 @@
   (let ((relative-path (file-relative-name file root)))
     (string-match (concat "^" angular/test-dir "/.*" angular/spec-suffix "\\.js$") relative-path)))
 
+(defun angular/controller-spec-p (root file)
+  (let* ((spec-root (concat (file-name-as-directory (expand-file-name root)) angular/spec-dir))
+         (relative-path (file-relative-name file spec-root)))
+    (string-prefix-p (file-name-as-directory "controllers") relative-path)))
+
+(defun angular/controller-p (root file)
+  (let* ((scripts-root (concat (file-name-as-directory (expand-file-name root)) angular/scripts-dir))
+         (relative-path (file-relative-name file scripts-root)))
+    (string-prefix-p (file-name-as-directory "controllers") relative-path)))
+
 (defun angular/find-root-from-current-buffer ()
   "Find the root of the project from the current buffer"
   (interactive)
-  (message (angular/find-root (buffer-file-name (current-buffer)))))
+  (angular/find-root (buffer-file-name (current-buffer))))
 
-(defun angular/open-associated-script (file)
-  (find-file-other-window
-   (concat root (file-name-as-directory angular/scripts-dir) (replace-regexp-in-string "\\(Ctrl\\)?Spec" "" file))))
+(defun angular/find-file (file)
+  (if angular/toggle-test-in-other-window
+      (find-file-other-window file)
+    (find-file file)))
 
-(defun angular/open-associated-test (file)
-  (find-file-other-window
-   (concat root (file-name-as-directory angular/spec-dir) (replace-regexp-in-string "\\.js$" "Spec.js" file))))
+(defun angular/open-associated-script (root file)
+  "Open the script file associated with the spec in FILE."
+  (let ((suffix angular/spec-suffix)
+        (relative-path (file-relative-name file (concat root angular/spec-dir))))
+    (if (angular/controller-spec-p root file)
+        (setq suffix angular/controller-spec-suffix))
+    (angular/find-file
+     (concat root (file-name-as-directory angular/scripts-dir)
+             (replace-regexp-in-string suffix "" relative-path)))))
+
+(defun angular/open-associated-test (root file)
+  (let ((suffix angular/spec-suffix)
+        (relative-path (file-relative-name file (concat root angular/scripts-dir))))
+    (if (angular/controller-p root file)
+        (setq suffix angular/controller-spec-suffix))
+    (angular/find-file
+     (concat root (file-name-as-directory angular/spec-dir)
+           (replace-regexp-in-string "\\.js$" (concat suffix ".js") relative-path)))))
 
 (defun angular/toggle-test ()
   "Switch between file and its associated spec."
@@ -86,9 +117,9 @@
          (root (angular/find-root current-file)))
     (if (angular/test-file-p root current-file)
         (let ((path-to-test (file-relative-name current-file (concat root angular/spec-dir))))
-          (angular/open-associated-script path-to-test))
+          (angular/open-associated-script root current-file))
       (let ((path-to-test (file-relative-name current-file (concat root angular/scripts-dir))))
-        (angular/open-associated-test path-to-test)))))
+        (angular/open-associated-test root current-file)))))
 
 (defvar angular-mode-keymap
   (let ((keymap (make-sparse-keymap)))
