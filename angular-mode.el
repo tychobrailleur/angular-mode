@@ -121,10 +121,35 @@
       (let ((path-to-test (file-relative-name current-file (concat root angular/scripts-dir))))
         (angular/open-associated-test root current-file)))))
 
+(defun angular/angular-controllers-list ()
+  (let* ((current-buf (current-buffer))
+         (current-file (buffer-file-name current-buf))
+         (root (angular/find-root current-file))
+         (controllers-root (concat (file-name-as-directory root)
+                                   (file-name-as-directory angular/scripts-dir)
+                                   "controllers")))
+    (directory-files controllers-root t "\\.js$")))
+
+(defvar helm-angular-controllers-list-cache nil)
+(defvar helm-angular-controllers-list
+  `((name . "Controllers")
+    (init . (lambda ()
+              (setq helm-angular-controllers-list-cache (angular/angular-controllers-list))))
+    (candidates . helm-angular-controllers-list-cache)
+    (type . file)))
+
+(defun angular/helm-controllers ()
+  (interactive)
+  (require 'helm-files)
+  (helm-other-buffer '(helm-angular-controllers-list)
+                     "*helm angular*"))
+
 (defvar angular-mode-keymap
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap
       (kbd "C-c t") 'angular/toggle-test)
+    (define-key keymap
+      (kbd "C-c c") 'angular/helm-controllers)
     keymap)
   "Key map for angular-mode.")
 

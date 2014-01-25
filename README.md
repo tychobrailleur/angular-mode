@@ -4,11 +4,11 @@ Minor mode for AngularJS.
 
 - `C-c t`: Toggle test.  From a JavaScript file, switches to the unit
   test, and vice-versa.
-
+- `C-c c`: List controllers using Helm.
 
 # License
 
-Copyright 2014 Sébastien Le Callonnec
+Copyright (c) 2014 Sébastien Le Callonnec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
