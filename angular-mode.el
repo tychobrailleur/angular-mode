@@ -1,4 +1,4 @@
-;; Copyright 2014 Sébastien Le Callonnec
+;; Copyright (c) 2014 Sébastien Le Callonnec
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -13,13 +13,39 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(defvar angular-version "0.1.0")
+
+(defgroup angular nil
+  "Angular Minor mode Group."
+  :group 'programing
+  :prefix "angular/")
+
+(defcustom angular/source-dir "app"
+  "Location of the application sources in the project."
+  :type 'string
+  :group 'angular)
+
+(defcustom angular/test-dir "test"
+  "Location of tests in the angular project."
+  :type 'string
+  :group 'angular)
+
+(defcustom angular/spec-suffix "Spec"
+  "Suffix for specs."
+  :type 'string
+  :group 'angular)
+
+(defcustom angular/controller-spec-suffix "CtrlSpec"
+  "Suffix for controllers specs."
+  :type 'string
+  :group 'angular)
 
 (defun angular/find-root (file)
   (when file
     (let ((current-dir (file-name-directory file))
           (found nil))
       (while (not found)
-        (if (file-exists-p (concat current-dir "app"))
+        (if (file-exists-p (concat current-dir angular/source-dir))
             (setq found t)
           (setq current-dir (concat current-dir "../"))))
       (if found
@@ -51,12 +77,17 @@
          (concat root "/test/spec/" (replace-regexp-in-string "\\.js$" "Spec.js" path-to-test))))
       )))
 
-(define-keys custom-mode-keymap ((kbd "C-c t") 'angular/toggle-test))
+(defvar angular-mode-keymap
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap
+      (kbd "C-c t") 'angular/toggle-test)
+    keymap)
+  "Key map for angular-mode.")
 
 (define-minor-mode angular-mode
   "Angular"
   nil
   "Angular"
-  custom-mode-keymap)
+  angular-mode-keymap)
 
 (provide 'angular-mode)
