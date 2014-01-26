@@ -19,6 +19,7 @@ test, and vice-versa.
 - `C-c s`: List services using Helm.
 - `C-c v`: List views using Helm.
 - `C-c a`: List all.
+- `C-c h`: Open AngularJS docs in browser.
 
 # License
 

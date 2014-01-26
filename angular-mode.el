@@ -244,6 +244,11 @@ ensuring app/directives directory exists."
                        helm-angular-views-list)
                      "*helm angular*"))
 
+(defun angular/browse-docs ()
+  "Open the AngularJS docs pages."
+  (interactive)
+  (browse-url "http://docs.angularjs.org/api"))
+
 (defvar angular-mode-keymap
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap
@@ -258,6 +263,8 @@ ensuring app/directives directory exists."
       (kbd "C-c v") 'angular/helm-views)
     (define-key keymap
       (kbd "C-c a") 'angular/helm-all)
+    (define-key keymap
+      (kbd "C-c h") 'angular/browse-docs)
     keymap)
   "Key map for angular-mode.")
 
