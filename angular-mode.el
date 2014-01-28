@@ -150,6 +150,15 @@ ensuring app/directives directory exists."
 (defun angular/angular-services-list ()
   (angular/angular-list-of "services"))
 
+(defun angular/angular-views-list ()
+    (let* ((current-buf (current-buffer))
+         (current-file (buffer-file-name current-buf))
+         (root (angular/find-root current-file))
+         (resource-root (concat (file-name-as-directory root)
+                                (file-name-as-directory angular/source-dir)
+                                resource-type)))
+    (directory-files resource-root t "\\.html$")))
+
 (defvar helm-angular-controllers-list-cache nil)
 (defvar helm-angular-controllers-list
   `((name . "Controllers")
@@ -174,6 +183,14 @@ ensuring app/directives directory exists."
     (candidates . helm-angular-services-list-cache)
     (type . file)))
 
+(defvar helm-angular-views-list-cache nil)
+(defvar helm-angular-views-list
+  `((name . "Views")
+    (init . (lambda ()
+              (setq helm-angular-views-list-cache (angular/angular-views-list))))
+    (candidates . helm-angular-views-list-cache)
+    (type . file)))
+
 (defun angular/helm-controllers ()
   (interactive)
   (require 'helm-files)
@@ -192,12 +209,19 @@ ensuring app/directives directory exists."
   (helm-other-buffer '(helm-angular-services-list)
                      "*helm angular*"))
 
+(defun angular/helm-views ()
+  (interactive)
+  (require 'helm-files)
+  (helm-other-buffer '(helm-angular-views-list)
+                     "*helm angular*"))
+
 (defun angular/helm-all ()
   (interactive)
   (require 'helm-files)
   (helm-other-buffer '(helm-angular-controllers-list
                        helm-angular-directives-list
-                       helm-angular-services-list)
+                       helm-angular-services-list
+                       helm-angular-views-list)
                      "*helm angular*"))
 
 (defvar angular-mode-keymap
@@ -210,6 +234,8 @@ ensuring app/directives directory exists."
       (kbd "C-c d") 'angular/helm-directives)
     (define-key keymap
       (kbd "C-c s") 'angular/helm-services)
+    (define-key keymap
+      (kbd "C-c v") 'angular/helm-views)
     (define-key keymap
       (kbd "C-c a") 'angular/helm-all)
     keymap)
