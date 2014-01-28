@@ -73,20 +73,6 @@
 
 (defvar angular/project-root nil)
 
-(defvar resource-list
-  '(
-    ( "controllers" . (make-resource
-                       :name "controllers"
-                       :description "Controllers"
-                       :extension ".js"
-                       :location (angular/angular-script-dir "controllers")))
-    ( "directives" . (make-resource
-                      :name "directives"
-                      :description "directives"
-                      :extension ".js"
-                      :location (angular/angular-script-dir "directives")))
-    ))
-
 (defun angular/angular-project-p (current-file)
   "Checking this project is an AngularJS project by
 ensuring app/directives directory exists."
@@ -164,8 +150,9 @@ ensuring app/directives directory exists."
   (let* ((current-buf (current-buffer))
          (current-file (buffer-file-name current-buf))
          (root (angular/find-root current-file))
-         (resource-root (angular/angular-script-dir resource-type)))
-    (directory-files resource-root t "\\.\\(js|html|css\\)$")))
+         (resource-root (angular/angular-script-dir root resource-type)))
+    (message " Resource root  = %s" resource-root)
+    (directory-files resource-root t "\\.js$")))
 
 (defun angular/angular-controllers-list ()
   (angular/angular-list-of "controllers"))
@@ -177,7 +164,13 @@ ensuring app/directives directory exists."
   (angular/angular-list-of "services"))
 
 (defun angular/angular-views-list ()
-  (angular/angular-list-of "views"))
+    (let* ((current-buf (current-buffer))
+         (current-file (buffer-file-name current-buf))
+         (root (angular/find-root current-file))
+         (resource-root (concat (file-name-as-directory root)
+                                (file-name-as-directory angular/source-dir)
+                                "views")))
+    (directory-files resource-root t "\\.html$")))
 
 (defvar helm-angular-controllers-list-cache nil)
 (defvar helm-angular-controllers-list
